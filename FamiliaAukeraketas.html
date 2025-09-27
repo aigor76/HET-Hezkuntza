@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="eu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base target="_top">
+    <title>Familiak Hautatu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #1f2041;
+            line-height: 1.6;
+        }
+
+        .modal-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 32, 65, 0.2);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #1f2041 0%, #4b3f72 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-content {
+            padding: 25px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 2px solid #119da4;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stats-section h3 {
+            color: #1f2041;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .stats-count {
+            color: #119da4;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #119da4;
+            outline: none;
+        }
+
+        .families-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #119da4 0%, #19647e 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .families-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .family-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: white;
+            margin-bottom: 2px;
+        }
+
+        .family-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .family-item:hover {
+            background: rgba(17, 157, 164, 0.1);
+            transform: translateX(3px);
+        }
+
+        .family-item.selected {
+            background: rgba(17, 157, 164, 0.15);
+            border-left: 4px solid #119da4;
+        }
+
+        .family-checkbox {
+            margin-right: 12px;
+            accent-color: #119da4;
+            transform: scale(1.2);
+            pointer-events: none;
+        }
+
+        .family-name {
+            font-weight: 500;
+            color: #1f2041;
+            flex: 1;
+        }
+
+        .family-email {
+            font-size: 12px;
+            color: #4b3f72;
+            opacity: 0.8;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-select-all {
+            background: linear-gradient(135deg, #ffc857 0%, #ffb347 100%);
+            color: #1f2041;
+        }
+
+        .btn-select-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 200, 87, 0.3);
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #119da4 0%, #19647e 100%);
+            color: white;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 157, 164, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #119da4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #4b3f72;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal-container {
+                margin: 10px;
+                max-width: none;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        /* Scrollbar styling */
+        .families-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .families-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .families-container::-webkit-scrollbar-thumb {
+            background: #119da4;
+            border-radius: 3px;
+        }
+
+        .families-container::-webkit-scrollbar-thumb:hover {
+            background: #19647e;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-container">
+        <div class="modal-header">
+            <button class="close-btn" onclick="cerrarModal()">✕</button>
+            <h1>👨‍👩‍👧‍👦 Familiak Hautatu</h1>
+            <p>Aukeratu mezua jaso behar duten familiak</p>
+        </div>
+
+        <div class="modal-content">
+            <!-- ESTADÍSTICAS -->
+            <div class="stats-section">
+                <h3>Erabilgarri dauden familiak</h3>
+                <div class="stats-count" id="totalFamilias">-</div>
+            </div>
+
+            <!-- BUSCADOR -->
+            <div class="search-section">
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input" 
+                       placeholder="🔍 Bilatu familiak (izena edo emaila)..."
+                       oninput="filtrarFamilias()">
+            </div>
+
+            <!-- LISTA DE FAMILIAS -->
+            <div class="families-section">
+                <div class="section-title">
+                    📋 Familia zerrenda
+                </div>
+                <div class="families-container" id="checkboxContainer">
+                    <!-- Loading inicial -->
+                    <div class="loading" id="initialLoading" style="display: block;">
+                        <div class="spinner"></div>
+                        <p>Familiak kargatzen...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="button-group">
+                <button class="btn btn-select-all" onclick="hautatuDenak()">
+                    ✔️ Hautatu denak
+                </button>
+                <button class="btn btn-send" onclick="bidaliMezuak()" id="btnSend">
+                    📩 Mezuak bidali
+                </button>
+            </div>
+
+            <!-- LOADING -->
+            <div class="loading" id="sendingLoading">
+                <div class="spinner"></div>
+                <p>Mezuak bidaltzen...</p>
+            </div>
+
+            <!-- ALERTS -->
+            <div class="alert" id="alertContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let todasLasFamilias = [];
+        let familiasFiltradas = [];
+
+        // Función principal para crear la lista
+        function sortuZerrenda(zerrenda) {
+            const container = document.getElementById('checkboxContainer');
+            const initialLoading = document.getElementById('initialLoading');
+            
+            todasLasFamilias = zerrenda;
+            familiasFiltradas = zerrenda;
+            
+            // Ocultar loading inicial
+            initialLoading.style.display = 'none';
+            
+            // Actualizar estadísticas
+            document.getElementById('totalFamilias').textContent = zerrenda.length;
+            
+            renderizarFamilias(zerrenda);
+        }
+
+        // Renderizar familias en el contenedor
+        function renderizarFamilias(familias) {
+            const container = document.getElementById('checkboxContainer');
+            
+            if (familias.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">👨‍👩‍👧‍👦</div>
+                        <p>Ez da familiarik aurkitu</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = "";
+            
+            familias.forEach(item => {
+                const familyItem = document.createElement('div');
+                familyItem.className = 'family-item';
+                familyItem.onclick = () => toggleFamily(item.email);
+                
+                familyItem.innerHTML = `
+                    <input type="checkbox" 
+                           class="family-checkbox" 
+                           name="email" 
+                           value="${item.email}"
+                           id="family_${item.email.replace(/[^a-zA-Z0-9]/g, '_')}">
+                    <div class="family-name">${item.label}</div>
+                    <div class="family-email">${item.email}</div>
+                `;
+                
+                container.appendChild(familyItem);
+            });
+        }
+
+        // Toggle selección de familia
+        function toggleFamily(email) {
+            const checkbox = document.querySelector(`input[value="${email}"]`);
+            const familyItem = checkbox.closest('.family-item');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                familyItem.classList.add('selected');
+            } else {
+                familyItem.classList.remove('selected');
+            }
+            
+            actualizarContadorSeleccionados();
+        }
+
+        // Filtrar familias
+        function filtrarFamilias() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                familiasFiltradas = todasLasFamilias;
+            } else {
+                familiasFiltradas = todasLasFamilias.filter(familia => 
+                    familia.label.toLowerCase().includes(searchTerm) ||
+                    familia.email.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderizarFamilias(familiasFiltradas);
+        }
+
+        // Seleccionar todas las familias visibles
+        function hautatuDenak() {
+            const checkboxes = document.querySelectorAll('input[name="email"]');
+            const isAllSelected = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !isAllSelected;
+                const familyItem = cb.closest('.family-item');
+                
+                if (cb.checked) {
+                    familyItem.classList.add('selected');
+                } else {
+                    familyItem.classList.remove('selected');
+                }
+            });
+            
+            // Actualizar texto del botón
+            const btn = document.querySelector('.btn-select-all');
+            if (isAllSelected) {
+                btn.innerHTML = '✔️ Hautatu denak';
+            } else {
+                btn.innerHTML = '❌ Deusauktatu denak';
+            }
+            
+            actualizarContadorSeleccionados();
+        }
+
+        // Actualizar contador de seleccionados
+        function actualizarContadorSeleccionados() {
+            const selected = document.querySelectorAll('input[name="email"]:checked').length;
+            const btnSend = document.getElementById('btnSend');
+            
+            if (selected > 0) {
+                btnSend.innerHTML = `📩 Mezuak bidali (${selected})`;
+                btnSend.disabled = false;
+            } else {
+                btnSend.innerHTML = '📩 Mezuak bidali';
+                btnSend.disabled = true;
+            }
+        }
+
+        // Enviar mensajes
+        function bidaliMezuak() {
+            const hautatuak = Array.from(document.querySelectorAll('input[name="email"]:checked'))
+                .map(cb => cb.value);
+                
+            console.log('Familias seleccionadas:', hautatuak); // Debug
+                
+            if (hautatuak.length === 0) {
+                mostrarAlert("Mesedez, hautatu gutxienez hartzaile bat.", 'error');
+                return;
+            }
+            
+            const baieztatu = confirm(`${hautatuak.length} familiari mezua bidali nahi diezu. Ziur zaude?`);
+            
+            if (!baieztatu) {
+                return; // Usuario canceló
+            }
+            
+            // Deshabilitar botón y mostrar loading
+            const btnSend = document.getElementById('btnSend');
+            btnSend.disabled = true;
+            btnSend.innerHTML = '⏳ Bidaltzen...';
+            
+            document.getElementById('sendingLoading').style.display = 'block';
+            
+            // Debug: verificar que la función existe
+            console.log('Llamando a bidaliHautatuetara con:', hautatuak);
+            
+            try {
+                google.script.run
+                    .withSuccessHandler(function(mezua) {
+                        console.log('Respuesta exitosa:', mezua);
+                        document.getElementById('sendingLoading').style.display = 'none';
+                        mostrarAlert(mezua, 'success');
+                        
+                        // Rehabilitar botón
+                        btnSend.disabled = false;
+                        actualizarContadorSeleccionados();
+                        
+                        // Opcional: cerrar modal después de éxito
+                        setTimeout(() => {
+                            cerrarModal();
+                        }, 3000);
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error en envío:', error);
+                        document.getElementById('sendingLoading').style.display = 'none';
+                        mostrarAlert(`Errorea: ${error.message || error.toString()}`, 'error');
+                        
+                        // Rehabilitar botón
+                        btnSend.disabled = false;
+                        actualizarContadorSeleccionados();
+                    })
+                    .bidaliHautatuetara(hautatuak);
+            } catch (scriptError) {
+                console.error('Error llamando a Apps Script:', scriptError);
+                document.getElementById('sendingLoading').style.display = 'none';
+                mostrarAlert(`Errorea script-ean: ${scriptError.message}`, 'error');
+                
+                // Rehabilitar botón
+                btnSend.disabled = false;
+                actualizarContadorSeleccionados();
+            }
+        }
+
+        // Mostrar alertas
+        function mostrarAlert(mensaje, tipo) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = tipo === 'error' ? 'alert-error' : 'alert-success';
+            
+            alertContainer.className = `alert ${alertClass}`;
+            alertContainer.textContent = mensaje;
+            alertContainer.style.display = 'block';
+            
+            // Auto-hide después de 5 segundos
+            setTimeout(() => {
+                alertContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            google.script.host.close();
+        }
+
+        // Cargar familias al iniciar
+        google.script.run
+            .withSuccessHandler(sortuZerrenda)
+            .withFailureHandler(function(error) {
+                document.getElementById('initialLoading').style.display = 'none';
+                mostrarAlert(`Errorea familiak kargatzen: ${error.message}`, 'error');
+            })
+            .lortuEmailZerrenda();
+    </script>
+</body>
+</html>
