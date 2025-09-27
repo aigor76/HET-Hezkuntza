@@ -1,4 +1,50 @@
-
+// AÑADIR ESTA FUNCIÓN ANTES DE onFormSubmit
+function extraerDatosFormulario(namedValues) {
+  let email = null;
+  let nombreFamilia = null;
+  let horario = null;
+  
+  Object.keys(namedValues).forEach(campo => {
+    const campoLower = campo.toLowerCase();
+    const valor = namedValues[campo][0];
+    
+    // Identificar email
+    if (!email && (
+      campoLower.includes('email') ||
+      campoLower.includes('correo') ||
+      campoLower.includes('helbide') ||
+      campoLower.includes('dirección') ||
+      (valor && valor.includes('@'))
+    )) {
+      email = valor;
+    }
+    
+    // Identificar nombre
+    if (!nombreFamilia && (
+      campoLower.includes('nombre') ||
+      campoLower.includes('izena') ||
+      campoLower.includes('hijo') ||
+      campoLower.includes('hija') ||
+      campoLower.includes('alumno')
+    )) {
+      nombreFamilia = valor;
+    }
+    
+    // Identificar horario
+    if (!horario && (
+      campoLower.includes('aukeratu') ||
+      campoLower.includes('elige') ||
+      campoLower.includes('día') ||
+      campoLower.includes('egun') ||
+      campoLower.includes('hora') ||
+      campoLower.includes('ordu')
+    )) {
+      horario = valor;
+    }
+  });
+  
+  return { email, nombreFamilia: nombreFamilia || 'Familia', horario };
+}
 
 const ss = SpreadsheetApp.getActiveSpreadsheet();
 const hojaConfig = ss.getSheetByName('Ordutegiak');
@@ -24,11 +70,7 @@ function onFormSubmit(e) {
     const form = FormApp.openByUrl(formUrl);
     
     // Obtener datos del formulario
-    const horario = e.namedValues[preguntaHorario]?.[0];
-    const email = e.namedValues["Email Address"]?.[0] ||
-                  e.namedValues["Helbide elektronikoa:"]?.[0] ||
-                  e.namedValues["Helbide elektronikoa"]?.[0];
-    const nombreFamilia = e.namedValues["Zure seme alabaren izena./ Nombre y apellidos de tu hijo o hija."]?.[0] || "Familia";
+    const { email, nombreFamilia, horario } = extraerDatosFormulario(e.namedValues);
     
     if (!horario || !email) {
       console.log("Datuak falta dira: ordutegia edo emaila");
@@ -61,7 +103,7 @@ function encontrarHojaRespuestas(spreadsheet) {
   
   // Buscar hoja que contenga "respuestas" en el nombre
   let hojaRespuestas = hojas.find(hoja => 
-    hoja.getName().toLowerCase().includes('respuestas') ||
+    hoja.getName().toLowerCase().includes('Respuestas') ||
     hoja.getName().toLowerCase().includes('responses') ||
     hoja.getName().toLowerCase().includes('form')
   );
@@ -532,9 +574,6 @@ function enviarCorreoConfirmacion(email, horario, firma) {
     htmlBody: htmlBody
   });
 }
-
-
-// ===== FUNCIÓN: ELIMINAR FRANJA DEL FORMULARIO =====
 function eliminarFranjaDelFormulario(form, preguntaHorario, horario) {
   const items = form.getItems(FormApp.ItemType.LIST);
   const listItem = items.find(item => item.getTitle() === preguntaHorario)?.asListItem();
@@ -546,23 +585,79 @@ function eliminarFranjaDelFormulario(form, preguntaHorario, horario) {
   
   const nuevasOpciones = listItem.getChoices()
     .map(choice => choice.getValue())
-    .filter(value => value !== horario);
+    .filter(value => value !== horario);  // ← PROBLEMA: comparación estricta
     
   listItem.setChoices(nuevasOpciones.map(opt => listItem.createChoice(opt)));
 }
 
-// ===== FUNCIÓN: ELIMINAR FRANJA DE LA HOJA =====
-function eliminarFranjaDeLaHoja(hojaConfig, horario) {
-  const datos = hojaConfig.getRange("A8:A").getValues();
+// ===== FUNCIÓN: ELIMINAR FRANJA DEL FORMULARIO =====
+//function eliminarFranjaDelFormulario(form, preguntaHorario, horario) {
+//  const items = form.getItems(FormApp.ItemType.LIST);
+//  const listItem = items.find(item => item.getTitle() === preguntaHorario)?.asListItem();
   
-  for (let i = 0; i < datos.length; i++) {
-    if (datos[i][0] === horario) {
-      hojaConfig.deleteRow(i + 8);
-      break;
+//  if (!listItem) {
+//    console.log("Ez da aurkitu ordutegiari buruzko galdera formularioan");
+//    return;
+//  }
+  
+//  const nuevasOpciones = listItem.getChoices()
+//    .map(choice => choice.getValue())
+//    .filter(value => value !== horario);
+    
+//  listItem.setChoices(nuevasOpciones.map(opt => listItem.createChoice(opt)));
+//}
+
+// ===== FUNCIÓN: ELIMINAR FRANJA DE LA HOJA =====
+//function eliminarFranjaDeLaHoja(hojaConfig, horario) {
+//  const datos = hojaConfig.getRange("A8:A").getValues();
+  
+//  for (let i = 0; i < datos.length; i++) {
+//    if (datos[i][0] === horario) {
+//      hojaConfig.deleteRow(i + 8);
+//      break;
+//    }
+//  }
+//}
+function eliminarFranjaDeLaHoja(hojaConfig, horario) {
+  try {
+    console.log('🗑️ Eliminando horario de la hoja:', horario);
+    
+    // Obtener el rango completo desde A8 hacia abajo
+    const ultimaFila = hojaConfig.getLastRow();
+    
+    if (ultimaFila < 8) {
+      console.log('⚠️ No hay datos desde A8 para eliminar');
+      return false;
     }
+    
+    const datos = hojaConfig.getRange(8, 1, ultimaFila - 7, 1).getValues();
+    console.log(`📊 Revisando ${datos.length} horarios desde la fila 8`);
+    
+    // Buscar el horario de atrás hacia adelante para evitar problemas de índices
+    for (let i = datos.length - 1; i >= 0; i--) {
+      const horarioEnFila = datos[i][0];
+      
+      if (horarioEnFila && horarioEnFila.toString().trim() === horario.toString().trim()) {
+        const filaAEliminar = i + 8; // +8 porque empezamos desde A8
+        
+        console.log(`🎯 Horario encontrado en fila ${filaAEliminar}: "${horarioEnFila}"`);
+        
+        // Eliminar la fila
+        hojaConfig.deleteRow(filaAEliminar);
+        
+        console.log(`✅ Fila ${filaAEliminar} eliminada correctamente`);
+        return true;
+      }
+    }
+    
+    console.log(`⚠️ No se encontró el horario "${horario}" en la hoja`);
+    return false;
+    
+  } catch (error) {
+    console.error('❌ Error eliminando horario de la hoja:', error);
+    return false;
   }
 }
-
 // ===== FUNCIÓN MEJORADA: ACTUALIZAR OPCIONES DESDE HOJA (ORDEN CRONOLÓGICO) =====
 function actualizarOpcionesDesdeHoja() {
   try {
